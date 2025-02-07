@@ -1,10 +1,10 @@
 import os
 from datetime import datetime
+from flask import Flask, request, jsonify
 
-from fastapi import FastAPI, Body
+app = Flask(__name__)
 
-app = FastAPI()
-
+# Determine the save path
 if "PYTHONANYWHERE_DOMAIN" in os.environ:
     ROOT_PATH = f"/home/{os.getenv('USER')}/saved/"
 else:
@@ -14,39 +14,54 @@ else:
 os.makedirs(ROOT_PATH, exist_ok=True)
 
 
-# Call to save text to a file
-@app.api_route("/save", methods=["POST"], include_in_schema=False)
-@app.api_route("/save/", methods=["POST"], include_in_schema=False)
-async def save_text(content: str = Body(..., media_type="text/plain")):
-    # Generate timestamp for file naming
+# Endpoint to save text to a file
+@app.route("/save", methods=["POST"])
+@app.route("/save/", methods=["POST"])
+def save_text():
+    # Ensure a file is provided in the request
+    if "file" not in request.files:
+        return jsonify({"message": "No file provided!"}), 400
+
+    uploaded_file = request.files["file"]
+
+    # Read the file content
+    file_content = uploaded_file.read().decode("utf-8")  # Read & decode file content as text
+
+    # Generate a unique filename with a timestamp
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     file_name = f"saved_{timestamp}.txt"
     file_path = os.path.join(ROOT_PATH, file_name)
 
-    # Save the text
-    with open(file_path, "w") as file:
-        file.write(content)
+    # Save the content to a new file
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(file_content)
 
-    return {"message": "Text saved successfully!", "file_path": file_path}
+    return jsonify({"message": "File content saved successfully!", "file_path": file_path})
 
 
-# Clear all saved texts
-@app.api_route("/clear", methods=["POST", "GET"], include_in_schema=False)
-@app.api_route("/clear/", methods=["POST", "GET"], include_in_schema=False)
-async def erase_texts():
+# Endpoint to clear all saved texts
+@app.route("/clear", methods=["POST", "GET"])
+@app.route("/clear/", methods=["POST", "GET"])
+def erase_texts():
     file_list = os.listdir(ROOT_PATH)
     if not file_list:
-        return {"message": "No files to delete!"}
+        return jsonify({"message": "No files to delete!"})
 
+    # Delete all files in the save directory
     for file_name in file_list:
         os.remove(os.path.join(ROOT_PATH, file_name))
 
-    return {"message": "All saved texts and files have been erased!"}
+    return jsonify({"message": "All saved texts and files have been erased!"})
 
 
 # Health check endpoint
-@app.api_route("/", methods=["POST", "GET"])
-@app.api_route("/status", methods=["POST", "GET"])
-@app.api_route("/status/", methods=["POST", "GET"])
-async def health_check():
-    return {"status": "API is running!"}
+@app.route("/", methods=["POST", "GET"])
+@app.route("/status", methods=["POST", "GET"])
+@app.route("/status/", methods=["POST", "GET"])
+def health_check():
+    return jsonify({"status": "API is running!"})
+
+
+# Run the Flask app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
