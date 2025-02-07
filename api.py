@@ -6,20 +6,21 @@ from fastapi import FastAPI, Body
 app = FastAPI()
 
 if "PYTHONANYWHERE_DOMAIN" in os.environ:
-    ROOT_PATH = f"/home/{os.getenv('USER')}/saved_texts/"
+    ROOT_PATH = f"/home/{os.getenv('USER')}/saved/"
 else:
-    ROOT_PATH = "./saved_texts/"
+    ROOT_PATH = "./saved/"
 
 # Ensure the directory exists
 os.makedirs(ROOT_PATH, exist_ok=True)
 
 
-@app.post("/save-text", include_in_schema=False)
-@app.post("/save-text/")
+# Call to save text to a file
+@app.api_route("/save", methods=["POST"], include_in_schema=False)
+@app.api_route("/save/", methods=["POST"], include_in_schema=False)
 async def save_text(content: str = Body(..., media_type="text/plain")):
     # Generate timestamp for file naming
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    file_name = f"saved_text_{timestamp}.txt"
+    file_name = f"saved_{timestamp}.txt"
     file_path = os.path.join(ROOT_PATH, file_name)
 
     # Save the text
@@ -29,9 +30,9 @@ async def save_text(content: str = Body(..., media_type="text/plain")):
     return {"message": "Text saved successfully!", "file_path": file_path}
 
 
-# create a request to erase all the saved texts
-@app.post("/clear", include_in_schema=False)
-@app.post("/clear/")
+# Clear all saved texts
+@app.api_route("/clear", methods=["POST", "GET"], include_in_schema=False)
+@app.api_route("/clear/", methods=["POST", "GET"], include_in_schema=False)
 async def erase_texts():
     file_list = os.listdir(ROOT_PATH)
     if not file_list:
@@ -43,6 +44,9 @@ async def erase_texts():
     return {"message": "All saved texts and files have been erased!"}
 
 
-@app.get("/")
+# Health check endpoint
+@app.api_route("/", methods=["POST", "GET"])
+@app.api_route("/status", methods=["POST", "GET"])
+@app.api_route("/status/", methods=["POST", "GET"])
 async def health_check():
     return {"status": "API is running!"}

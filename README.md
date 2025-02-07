@@ -47,30 +47,39 @@
 
 3. Send a POST request to save plain text:
    ```bash
-    curl -X POST "http://localhost:8000/save-text" -d 'Hi, there!'
+    curl -X POST "http://localhost:8000/save/" -d 'Hi, there!'
     ```
    
 4. Send a POST request to save a file's content:
    ```bash
-    curl -X POST "http://localhost:8000/save-text" -d file.txt
+    curl -X POST "http://localhost:8000/save/" -d file.txt
     ```
    
-5. Check the saved file in the `saved_texts` directory:
+5. Check the saved file in the `saved` directory:
    ```bash
-    ll saved_texts
-   -rw-r--r--  1 user.name  staff    10B Feb  6 13:32 saved_text_2025-02-06_13-32-36.txt
-   -rw-r--r--  1 user.name  staff     4B Feb  6 13:32 saved_text_2025-02-06_13-32-42.txt
-   -rw-r--r--  1 user.name  staff     3B Feb  6 13:33 saved_text_2025-02-06_13-33-29.txt
+    ll saved
+   -rw-r--r--  1 user.name  staff    10B Feb  6 13:32 saved_2025-02-06_13-32-36.txt
+   -rw-r--r--  1 user.name  staff     4B Feb  6 13:32 saved_2025-02-06_13-32-42.txt
+   -rw-r--r--  1 user.name  staff     3B Feb  6 13:33 saved_2025-02-06_13-33-29.txt
     ```
 
-6. Send a POST request to erase all saved texts:
+6. Send a POST or GET request to erase all saved texts:
    ```bash
-   curl -X POST "http://localhost:8000/clear"
+   curl -X POST "http://localhost:8000/clear/"
+   curl -X GET "http://localhost:8000/clear/"
    ```
    
 7. Check all files are erased:
    ```bash
-    ll saved_texts
+    ll saved
     total 0
     ```
+   
+8. Send a POST or GET to check api status:
+   ```bash
+   curl -X POST "http://localhost:8000/"
+   curl -X GET "http://localhost:8000/"
+   curl -X POST "http://localhost:8000/status/"
+   curl -X GET "http://localhost:8000/status/"
+   ```
    
