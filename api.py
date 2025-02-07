@@ -33,9 +33,16 @@ async def save_text(content: str = Body(..., media_type="text/plain")):
 @app.post("/clear", include_in_schema=False)
 @app.post("/clear/")
 async def erase_texts():
-    # Delete all saved texts
     file_list = os.listdir(ROOT_PATH)
+    if not file_list:
+        return {"message": "No files to delete!"}
+
     for file_name in file_list:
         os.remove(os.path.join(ROOT_PATH, file_name))
 
-    return {"message": "All saved texts have been erased!"}
+    return {"message": "All saved texts and files have been erased!"}
+
+
+@app.get("/")
+async def health_check():
+    return {"status": "API is running!"}
