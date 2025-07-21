@@ -82,4 +82,10 @@
    curl -X POST "http://localhost:8000/status/"
    curl -X GET "http://localhost:8000/status/"
    ```
+
+9. Post with pythonanywhere:
+```
+curl -X POST "https://yourusername.pythonanywhere.com/save/" -d 'Hi, there!'
+curl -X POST "https://yourusername.pythonanywhere.com/save/" -F "file=@file.txt"
+```
    

@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from flask import Flask, request, jsonify
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -14,29 +15,39 @@ else:
 os.makedirs(ROOT_PATH, exist_ok=True)
 
 
-# Endpoint to save text to a file
+# Endpoint to save text or binary files
 @app.route("/save", methods=["POST"])
 @app.route("/save/", methods=["POST"])
 def save_text():
-    # Ensure a file is provided in the request
     if "file" not in request.files:
         return jsonify({"message": "No file provided!"}), 400
 
     uploaded_file = request.files["file"]
+    original_filename = secure_filename(uploaded_file.filename or "uploaded")
 
-    # Read the file content
-    file_content = uploaded_file.read().decode("utf-8")  # Read & decode file content as text
-
-    # Generate a unique filename with a timestamp
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    file_name = f"saved_{timestamp}.txt"
-    file_path = os.path.join(ROOT_PATH, file_name)
 
-    # Save the content to a new file
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write(file_content)
+    # Case: text file → decode and save as .txt
+    if original_filename.lower().endswith(".txt"):
+        try:
+            file_content = uploaded_file.read().decode("utf-8", errors="replace")
+            file_name = f"saved_{timestamp}.txt"
+            file_path = os.path.join(ROOT_PATH, file_name)
+            with open(file_path, "w", encoding="utf-8") as file:
+                file.write(file_content)
+        except Exception as e:
+            return jsonify({"message": "Error reading text file", "error": str(e)}), 500
 
-    return jsonify({"message": "File content saved successfully!", "file_path": file_path})
+    # Case: any other file → save directly
+    else:
+        file_name = f"{timestamp}_{original_filename}"
+        file_path = os.path.join(ROOT_PATH, file_name)
+        try:
+            uploaded_file.save(file_path)
+        except Exception as e:
+            return jsonify({"message": "Error saving file", "error": str(e)}), 500
+
+    return jsonify({"message": "File saved successfully!", "file_path": file_path})
 
 
 # Endpoint to clear all saved texts
